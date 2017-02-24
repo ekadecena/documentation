@@ -195,6 +195,56 @@ This will try to push a local stream to YouTube Live Stream using Events. Below 
 
 ## Active
 
+Provides a detailed description of all active streams. 
+
+**Note:** Refresh page to update the list
+
+
+
+### Inbound Live Stream
+
+Displays the list of all active pulled streams
+
+![](./assets/Active_inbound.jpg)
+
+- ![](./assets/Config_info.JPG)**Information** - displays the stream information in a new window
+- ![](./assets/VOD_play.JPG)**Play** - streams the inbound file
+- ![](./assets/VOD_delete.JPG)**Delete** - deletes the stream in the configuration
+
+
+
+### Outbound Streams
+
+Displays the list of outbound streams
+
+![](./assets/Active_outbound.jpg)
+
+- ![](./assets/Config_info.JPG)**Information** - displays the stream information in a new window
+- ![](./assets/VOD_delete.JPG)**Delete** - deletes the stream in the configuration
+
+
+
+### Adaptive HTTP Streams
+
+Displays the list of active HTTP streams
+
+![](./assets/Active_http.jpg)
+
+- ![](./assets/Config_info.JPG)**Information** - displays the stream information in a new window
+- ![](./assets/VOD_play.JPG)**Play** - streams the HTTP file
+- ![](./assets/VOD_delete.JPG)**Delete** - deletes the stream in the configuration
+
+
+
+### File Media
+
+Displays the list active VOD streams
+
+![](./assets/Active_file.jpg)
+
+- ![](./assets/Config_info.JPG)**Information** - displays the stream information in a new window
+- ![](./assets/VOD_play.JPG)**Play** - streams the VOD file
+
 ------
 
 
