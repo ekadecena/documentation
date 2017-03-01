@@ -1,8 +1,6 @@
 # Dashboard
 
-The **Dashboard** is ...
-
-It contains the following information of your EMS:
+The **Dashboard** contains the following information of your EMS:
 
 - Connection Settings 
   - EMS Connection Status - tells the status of your connection to your EMS
