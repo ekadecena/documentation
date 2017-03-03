@@ -1,10 +1,7 @@
-![emslogo](..\emslogo.png)
+[TOC]
 
+# EMS Configuration Files
 
-
-
-
-# EMS Configuration
 
 
 
@@ -85,19 +82,19 @@ The EMS configuration file, config.lua, is a hierarchical data structure of assi
 -  **`<keyname>= <value>`**
 
   where `value` could be any of the following types:
-  - string = series of alpha numeric characters (should be enclosed in double quotes)
+-   string = series of alpha numeric characters (should be enclosed in double quotes)
 
     ```
     Example:	pushPullPersistenceFile="..\\config\\pushPullSetup.xml",
     ```
 
-  - number = digits
+-   number = digits
 
-    ```
-    Example:	streamsExpireTimer=10,
-    ```
+            ​```
+            Example:	streamsExpireTimer=10,
+            ​```
 
-  - array = list of values (separated by comma and is grouped by braces {}, each value enclosed in double quotes)
+-   array = list of values (separated by comma and is grouped by braces {}, each value enclosed in double quotes)
 
     ```
     Example:	aliases = {“flvplayback1”, “vod1”, “live”}
@@ -122,21 +119,73 @@ The EMS configuration file, config.lua, is a hierarchical data structure of assi
 
 If you modify this file and the server then fails to start, you have made an error. You can either roll-back your changes or you can use the `--use-implicit-console-appender` command line parameter to get extra debug information about what failed during startup.
 
+- For Linux Package:
+
+  ```
+  cd /usr/bin/evostreamms –use-implicit-console-appender /etc/evostreamms/config.lua
+  ```
+
+- For Linux Archive:
+
+  ```
+  cd EMS_INSTALL_DIRECTORY
+  ./evostreamms --use-implicit-console-appender ../config/config.lua
+  ```
+
+- For Windows:
+
+  ```
+  cd EMS_INSTALL_DIRECTORY
+  evostreamms --use-implicit-console-appender config\config.lua
+  ```
+
+where:
+
+EMS_INSTALL_DIRECTORY is the `bin` directory within the EvoStream Media Server Archive directory.
+
+1. The “daemon” value is read. The server now will either fork to become daemon or continue as is in console mode.
+2. The “logAppenders” value is read. This is where all log appenders are configured and brought up to running state. Depending on the collection of your log appenders, you may (not) see further log messages.
+3. The “applications” value is taken into consideration. Up until now, the server doesn’t do much. After this stage completes, all the applications are fully functional and the server is online and ready to do stuff.
+
 
 
 ### The config.lua:
 
-#### A. pathSeparator
+#### A. daemon
 
-This is the path separator used by EMS.
+If **true** means the server will start in daemon mode. **false** means it will start in console mode (nice for development)
+
+**Type:** Boolean
+
+**Mandatory:** Yes
+
+```
+daemon = false,
+```
+
+
+
+#### B. pathSeparator
+
+This value will be used by the server to compose paths (like media files paths). Examples: on UNIX-like systems this is / while on windows is . Special care must be taken when you specify this value on windows because \ is an escape sequence for Lua so the value should be “\”.
+
+**Type:** String
+
+**Mandatory:** Yes
 
 ```
 pathSeparator="/",
 ```
 
-#### B. logAppenders
 
-This is the configuration for the EMS logs.
+
+#### C. logAppenders
+
+This section contains a list of log appenders. The entire collection of appenders listed in this section is loaded inside the logger at config-time. All log messages will be than passed to all these log appenders. Depending on the log level, an appender may (or may not) log the message. “Logging” a message means “saving” it on the specified “media” (in the example below we have a console appender and a file).
+
+**Type:** Object
+
+**Mandatory:** Yes
 
 ```
 logAppenders=
@@ -159,9 +208,38 @@ logAppenders=
 	},
 ```
 
-#### C. applications
+##### logAppenders Structure Table
 
-- **rootDirectory** - the root directory of the EMS
+|        Key        |  Type   | Mandatory | Description                              |
+| :---------------: | :-----: | :-------: | ---------------------------------------- |
+|       name        | string  |    yes    | The name of the appender. It is usually used inside pretty print routines. |
+|       type        | string  |    yes    | The type of the appender. Types `console` and `coloredConsole` will output to the console. The difference between them is that `coloredConsole` will also apply a color to the message, depending on the log level. Quite useful when eye-balling the console. Type `file` log appender will output everything to the specified file. |
+|       level       | number  |    yes    | The log level used. The values are presented just below. Any message having a log level less or equal to this value will be logged. The rest are discarded. (**Log levels:** 0 FATAL, 1 ERROR, 2 WARNING, 3 INFO, 4 DEBUG, 5 FINE, 6 FINEST, -1 disable logs) |
+|     fileName      | string  |    yes    | If the type of appender is a file, this will contain the path of the file. |
+| newLineCharacters | string  |    no     | Newline character used in the file appender. |
+|  fileHistorySize  | number  |    no     | The maximum number of log files to be retained. The oldest log file will be deleted first if this number is exceeded. |
+|    fileLength     | number  |    no     | Buffer size of the file appender.        |
+|    singleLine     | boolean |    no     | If yes, multi-line log messages are merged into one line. |
+
+**Note:** When daemon mode is set to true, all console appenders will be ignored..
+
+
+
+#### D. applications
+
+Will hold a collection of loaded applications. Besides that, it will also hold few other values.
+
+**Type:** Object
+
+**Mandatory:** Yes
+
+Below are the objects inside applications:
+
+- **rootDirectory** - the folder containing applications subfolders. If this path begins with a “/” or “" (depending on the OS), then is treated as an absolute path. Otherwise is treated as a path relative to the run-time directory (the place where you started the server).
+
+  **Type:** String
+
+  **Mandatory:** Yes
 
   ```
   rootDirectory="./",
@@ -170,19 +248,31 @@ logAppenders=
 
 - **appDir** - the application directory of EMS
 
+  **Type:** String
+
+  **Mandatory:** Yes
+
   ```
   appDir="./",
   ```
 
 
-- **name** - the name of the server
+- **name** - the name of the server. Could be the name of the company, organization etc.
+
+  **Type:** String
+
+  **Mandatory:** No
 
   ```
   name="evostreamms",
   ```
 
 
-- **description** - the description of the server
+- **description** - the description of the "name"
+
+  **Type:** String
+
+  **Mandatory:** No
 
   ```
   description="EVOSTREAM MEDIA SERVER",
@@ -191,12 +281,20 @@ logAppenders=
 
 - **protocol** - 
 
+- **Type:** String
+
+  **Mandatory:** Yes
+
   ```
   protocol="dynamiclinklibrary",
   ```
 
 
 - **default**
+
+  **Type:** Boolean
+
+  **Mandatory:** Yes
 
   ```
   default=true,
@@ -205,12 +303,20 @@ logAppenders=
 
 - **pushPullPersistenceFile** - the path of the pushPull configuration file
 
+  **Type:** String
+
+  **Mandatory:** Yes
+
   ```
   pushPullPersistenceFile="..\\config\\pushPullSetup.xml",
   ```
 
 
 - **authPersistenceFile** - the path of the authentication file
+
+  **Type:** String
+
+  **Mandatory:** Yes
 
   ```
   authPersistenceFile="..\\config\\auth.xml",
@@ -219,12 +325,20 @@ logAppenders=
 
 - **connectionsLimitPersistenceFile** - the path of the connection limit file
 
+  **Type:** String
+
+  **Mandatory:** Yes
+
   ```
   connectionsLimitPersistenceFile="..\\config\\connlimits.xml",
   ```
 
 
 - **bandwidthLimitPersistenceFile** - the path of the bandwidth limit file
+
+  **Type:** String
+
+  **Mandatory:** Yes
 
   ```
   bandwidthLimitPersistenceFile="..\\config\\bandwidthlimits.xml",
@@ -233,12 +347,20 @@ logAppenders=
 
 - **ingestPointsPersistenceFile** - the path of the ingest points file
 
+  **Type:** String
+
+  **Mandatory:** Yes
+
   ```
   ingestPointsPersistenceFile="..\\config\\ingestpoints.xml",
   ```
 
 
 - **streamsExpireTimer** - 
+
+  **Type:** Number
+
+  **Mandatory:** Yes
 
   ```
   streamsExpireTimer=10,
@@ -247,12 +369,20 @@ logAppenders=
 
 - **rtcpDetectionInterval**
 
+  **Type:** Number
+
+  **Mandatory:** Yes
+
   ```
   rtcpDetectionInterval=15,
   ```
 
 
 - **hasStreamAliases** - enables or disables stream name aliases
+
+  **Type:** Boolean
+
+  **Mandatory:** Yes
 
   ```
   hasStreamAliases=false,
@@ -261,12 +391,20 @@ logAppenders=
 
 - **hasIngestPoints** - the configuration of the ingest point 
 
+  **Type:** Boolean
+
+  **Mandatory:** Yes
+
   ```
   hasIngestPoints=false
   ```
 
 
 - **validateHandshake** - 
+
+  **Type:** Boolean
+
+  **Mandatory:** Yes
 
   ```
   validateHandshake=false,
@@ -275,6 +413,10 @@ logAppenders=
 
 - **aliases** - the extension of the stream where alias can be added
 
+  **Type:** Array
+
+  **Mandatory:** Yes
+
   ```
   aliases={"er", "live", "vod"},
   ```
@@ -282,12 +424,20 @@ logAppenders=
 
 - **maxRtmpOutBuffer** - 
 
+  **Type:** String
+
+  **Mandatory:** Yes
+
   ```
   maxRtmpOutBuffer=512*1024,
   ```
 
 
-- **hlsVersion** - the HLS version to be used 
+- **hlsVersion** - the HLS version to be used. User should make sure of the version before creating HLS files.
+
+  **Type:** Number
+
+  **Mandatory:** Yes
 
   ```
   hlsVersion=3,
@@ -305,12 +455,20 @@ logAppenders=
 
 - **useSourcePts** - 
 
+  **Type:** Boolean
+
+  **Mandatory:** Yes
+
   ```
   useSourcePts=false,
   ```
 
 
 - **enableCheckBandwidth** - reads the bandwidth.xml if set to true
+
+  **Type:** Boolean
+
+  **Mandatory:** Yes
 
   ```
   enableCheckBandwidth=true,
@@ -321,6 +479,10 @@ logAppenders=
 
   **How it works?** The local server will look for video1. When that lookup fails it will get the configuration details set to `vodRedirectRtmpIp` parameter. If there's a valid value, the local server makes a `pullStream` request on the server (vodRedirectRtmpIP value) for video1. The local server then uses that new stream resulting from the `pullStream` to serve the initial client request.
 
+  **Type:** String
+
+  **Mandatory:** No
+
   ```
   vodRedirectRtmpIp="",
   ```
@@ -330,12 +492,20 @@ logAppenders=
 
 - **forceRtmpDatarate**
 
+  **Type:** Boolean
+
+  **Mandatory:** Yes
+
   ```
   forceRtmpDatarate=false,
   ```
 
 
-- **mediaStorage** - the configuration for the media storage
+- **mediaStorage** - the configuration for the media storage. 
+
+  **Type:** Object
+
+  **Mandatory:** Yes
 
   ```
   mediaStorage = {
@@ -345,9 +515,6 @@ logAppenders=
   					mediaFolder="../media",
   				},
   				--[[
-  				-- the following is an example and contains all
-  				-- available properties along with their default
-  				-- values(except paths, of course)
   				sample={
   					description="Storage example",
   					mediaFolder="/some/media/folder",
@@ -361,9 +528,28 @@ logAppenders=
   				]]--
   			},
   ```
+  There are several uses of the media folder:
+
+  - Storage of vod file that is used for `pullStream`
+  - Location of the created file using `generateLazyPull` command
+  - Storage of recorded streams using record command
+
+  ​
+
+  ##### media Structure Table
+
+  |          Key           |  Type  | Mandatory | Description                              |
+  | :--------------------: | :----: | :-------: | ---------------------------------------- |
+  | recordedStreamsStorage | String |   True    | The path of the media folder to be used in record streams |
+  |      description       | String |   False   | The description of the media storage     |
+  |      mediafolder       | String |   True    | The path of the media storage folder     |
 
 
-- **acceptors** - the default acceptors used by EMS
+- **acceptors** - the “acceptors” block is found within the “applications” section named “evostreamms” in the configuration file. Each acceptor protocol used by applications is defined here. Some protocols may require additional parameters.
+
+  **Type:** Object
+
+  **Mandatory:** Yes
 
   ```
   acceptors=
@@ -457,7 +643,6 @@ logAppenders=
   					ip="0.0.0.0",
   					port=4443,
   					protocol="inboundRtmp",
-  					-- cipherSuite="!DEFAULT:RC4-SHA", -- enables/disables a specific set of ciphers. If not specified, it is defaulted to the openssl collection of ciphers
   					sslKey="/path/to/some/key",
   					sslCert="/path/to/some/cert",
   				},
@@ -486,7 +671,67 @@ logAppenders=
   ```
 
 
-- autoDASH/HLS/HDS/MSS - if enabled, will automatically create the HTTP streams from the pulled entries. 
+  **acceptor Structure Table:**
+
+  |   Key    |  Type  | Mandatory | Description                              |
+  | :------: | :----: | :-------: | ---------------------------------------- |
+  |    ip    | string |    yes    | The IP where the service is located. A value of 0.0.0.0 means all interfaces and all IPs. |
+  |   port   | string |    yes    | Port number that the service will listen to. |
+  | protocol | string |    yes    | The protocol stack handled by the ip:port combination. |
+
+  The following acceptor types are supported by EMS:
+
+  | Acceptor Protocol  | Typical IP | Typical Port |    Additional Parameters (see Note 1)    | Protocol Stack (Tags) |
+  | :----------------: | :--------: | :----------: | :--------------------------------------: | :-------------------: |
+  |    inboundRtmp     |  0.0.0.0   |     1935     |                                          |        TCP+IR         |
+  |    inboundRtmps    |  0.0.0.0   |     8081     | sslKey (path to SSL key file), sslCert (path to SSL certificate file) (see Note 2) |     TCP+ISSL+IRS      |
+  |    inboundRtmpt    |  0.0.0.0   |     8080     |                                          |       TCP+IH4R        |
+  |    inboundTcpTs    |  0.0.0.0   |     9999     |                                          |        TCP+ITS        |
+  |    inboundUdpTs    |  0.0.0.0   |     9999     |                                          |        UDP+ITS        |
+  |    inboundRtsp     |  0.0.0.0   |     5544     |                                          |       TCP+RTSP        |
+  |   inboundLiveFlv   |  0.0.0.0   |     6666     |        waitForMetadata (boolean)         |       TCP+ILFL        |
+  | inboundBinVariant  | 127.0.0.1  |     1113     |           clustering (boolean)           |       TCP+BVAR        |
+  |   inboundJsonCli   | 127.0.0.1  |     1112     |        useLengthPadding (boolean)        |     TCP+IJSONCLI      |
+  | inboundHttpJsonCli | 127.0.0.1  |     7777     |                                          | TCP+IHTT+H4C+IJSONCLI |
+  |  inboundAsciiCli   | 127.0.0.1  |     1222     |        useLengthPadding (boolean)        |      TCP+IASCCLI      |
+
+  **Protocol Group Table:**
+
+  |    Protocol Group    |   Tag    | Protocol Type          |
+  | :------------------: | :------: | ---------------------- |
+  |  Carrier Protocols   |   TCP    | TCP                    |
+  |                      |   UDP    | UDP                    |
+  |  Variant Protocols   |   BVAR   | Bin Variant            |
+  |                      |   XVAR   | XML Variant            |
+  |                      |   JVAR   | JSON Variant           |
+  |    RTMP Protocols    |    IR    | Inbound RTMP           |
+  |                      |   IRS    | Inbound RTMPS          |
+  |                      |    OR    | Outbound RTMP          |
+  |                      |    RS    | RTMP Dissector         |
+  | Encryption Protocols |    RE    | RTMPE                  |
+  |                      |   ISSL   | Inbound SSL            |
+  |                      |   OSSL   | Outbound SSL           |
+  |   MPEG-TS Protocol   |   ITS    | Inbound TS             |
+  |    HTTP Protocols    |   IHTT   | Inbound HTTP           |
+  |                      |  IHTT2   | Inbound HTTP2          |
+  |                      |   IH4R   | Inbound HTTP for RTMP  |
+  |                      |   OHTT   | Outbound HTTP          |
+  |                      |  OHTT2   | Outbound HTTP2         |
+  |                      |   OH4R   | Outbound HTTP for RTMP |
+  |    CLI Protocols     | IJSONCLI | Inbound JSON CLI       |
+  |                      |   H4C    | HTTP for CLI           |
+  |                      | IASCCLI  | Inbound ASCII CLI      |
+  |    RPC Protocols     |   IRPC   | Inbound RPC            |
+  |                      |   ORPC   | Outbound RPC           |
+  | Passthrough Protocol |    PT    | Passthrough            |
+
+  ​
+
+- **autoDASH/HLS/HDS/MSS** - if enabled, will automatically create the HTTP streams from the pulled entries. 
+
+  **Type:** Object
+
+  **Mandatory:** No
 
   ```
   autoDASH=
@@ -511,6 +756,10 @@ logAppenders=
 
 
 - **authentication** - the authentication settings for RTMP and RTSP protocols. For RTMP, another file, `auth.xml`, is required to enable authentication. In addition, a users file, typically named `users.lua`, provides the user names and passwords.
+
+  **Type:** Object
+
+  **Mandatory:** No
 
   ```
   authentication=
@@ -546,10 +795,14 @@ logAppenders=
 
   **Notes:**
 
-  1. Authentication is disabled if the “authentication” block in the “config.lua” file is missing or incomplete. For RTMP protocol, authentication is disabled if the “auth.xml” file is missing or contains a “false” setting. For RTSP protocol, authentication is disabled if “authenticatePlay” in the “rtsp” block is omitted or set to “false”.
+  1. Authentication is disabled if the “authentication” block in the “config.lua” file is missing or incomplete. For RTMP protocol, authentication is disabled if the “auth.xml” file is missing or contains a “false” setting. For RTSP protocol, authentication is disabled if **“authenticatePlay**” in the “rtsp” block is omitted or set to “false”.
   2. Scripts are available for creating certificates and keys for EMS. Please refer to our GitHub files [here](https://github.com/EvoStream/evostream_addons/tree/master/certificates_and_keys) for details.
 
-- **eventLogger** - the configuration for the events and event log
+- **eventLogger** - settings for the server-wide event sinks. 
+
+  **Type:** Object
+
+  **Mandatory:** No
 
   ```
   eventLogger=
@@ -610,11 +863,19 @@ logAppenders=
 
   **Notes:** 
 
-  1. This section is disabled by default. See events definitions [here]()
+  1. This section is disabled by default. 
   2. The event log files will be stored in the path where EMS logs are configured
+
+  See [Event Notification System]() for more information.
+
+
 
 
 - **transcoder** - the configuration for the transcoder
+
+  **Type:** Object
+
+  **Mandatory:** Yes
 
   ```
   transcoder = {
@@ -627,12 +888,20 @@ logAppenders=
 
 - **mp4BinPath** - the path to the mp4 writer executable file
 
+  **Type:** String
+
+  **Mandatory:** Yes
+
   ```
   mp4BinPath="..\\evo-mp4writer.exe",
   ```
 
 
 - **webRTC** - the security configuration for the webRTC
+
+  **Type:** Object
+
+  **Mandatory:** Yes
 
   ```
   webrtc = {
@@ -644,6 +913,10 @@ logAppenders=
 
 - **drm** - the configuration for the HLS security 
 
+  **Type:** Object
+
+  **Mandatory:** Yes, if HLS version 5 is used
+
   ```
   drm={
   			type="verimatrix",
@@ -654,6 +927,7 @@ logAppenders=
   			urlPrefix="http://vcas3multicas1.verimatrix.com:12684/CAB/keyfile"
   	},
   ```
+
 
 
 

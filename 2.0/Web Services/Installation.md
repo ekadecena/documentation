@@ -141,3 +141,20 @@ After installation, the evowebservices will be found here: `..\evo-webroot\evow
 3. Run EMS
 4. The Event Notification System would now be receiving data from EMS and trigger the all enabled plugins
 
+
+
+
+**Checking evowebservices:**
+
+Linux: send `ps -e|grep evowebservices`
+
+```
+Node: 
+```
+
+Windows: check in task manager
+
+```
+process name: evo-node.exe
+```
+

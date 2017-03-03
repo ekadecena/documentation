@@ -1,7 +1,3 @@
-![emslogo](..\emslogo.png)
-
-
-
 # Sign Up
 
 To access the EMS Web UI, a user should be added first. There are several options for the users to Sign Up. To Sign up via **email address**, via **Facebook** account and via **Google+** account. 
