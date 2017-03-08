@@ -1,25 +1,21 @@
+[TOC]
+
 # pushStream
 
+EMS is capable of receiving streams that are pushed to it from other servers. An RTMP listener is available on port **1935** , an RTSP listener on **5544** and a LiveFLV listener on port **6666**.
 
-
-## Definition
-
-The EMS provides an extremely robust platform for stream protocol re-encapsulation. That is, the EMS will allow the translation from one streaming protocol to another protocol, allowing the reach to a wide range of video/audio clients, regardless of how the video/audio source is configured.
-
-The first step to achieve protocol re-encapsulation is to get the original stream into the EMS. The most common method for doing this is by using the “**Pull a Stream**” mechanism, but other systems can also push a stream into the EMS.
-
-The `pullStream` API provides a way to tell the EMS to retrieve an existing stream.
+Steps on how to do the actual stream push needs to be consulted with the stream source, as every system has different ways of accomplishing this.
 
 
 
 ## How To
 
-Below are the examples of how to pull a stream in different formats:
+Below are the examples of how to push a stream in different formats:
 
 ### RTMP stream
 
 ```
-pullStream uri=rtmp://<STREAM_ADDRESS> localStreamName=RTMPTest
+pushStream uri=rtmp://DestinationAddress localStreamName=SomeLocalStreamName
 ```
 
 
@@ -27,49 +23,157 @@ pullStream uri=rtmp://<STREAM_ADDRESS> localStreamName=RTMPTest
 ### RTSP stream
 
 ```
-pullStream uri=rtsp://<STREAM_ADDRESS> localStreamName=RTSPTest
-```
-
-
-
-### RTP - UDP stream
-
-```
-pullStream uri=rtp://<STREAM_ADDRESS> localStreamName=RTPTest isAudio=0 spsBytes=Z0LAHpZiA2P8vCAAAAMAIAAABgHixck= ppsBytes=aMuMsg==
+pushStream uri=rtsp://DestinationAddress:port localStreamName=SomeLocalStreamName
 ```
 
 
 
 ### MPEG-TS stream
 
-#### UDP MPEG-TS stream
+MPEG-TS streams, in general, don’t have the concept of a stream identifier (name). The EMS will assign a name to an inbound MPEG-TS stream for internal uses, but outside of the EMS, that name is not used. To obtain an MPEG-TS stream from the EMS, it must be first pushed out to the network.
+
+Sample commands to do this are:
 
 ```
-pullStream uri=dmpegtsudp://<STREAM_ADDRESS>:<PORT> localStreamName=TSTest
+pushStream uri=mpegtsudp://DestinationAddr localStreamName=SomeLocalStream
 ```
 
-This can be used for multicast streams as well. If the address of the stream is in the IP Multicast range, the EMS will automatically join the multicast group so that it can pull the stream.
-
-#### TCP MPEG-TS
+or
 
 ```
-pullStream uri=dmpegtstcp://<STREAM_ADDRESS>:<PORT> localStreamName=TSTest
+pushStream uri=mpegtstcp://DestinationAddr localStreamName=SomeStream
 ```
 
-**Note:**
-
-The “**d**” in front of mpegts ( **d**mpegts) in the URIs above refers to “deep parsing”. Using the URI, the inbound MPEG-TS stream can be re-encapsulated into other protocols such RTMP or RTSP. If the only output format will be MPEG-TS (e.g. EMS is used as an MPEG-TS pass-through), then mpegtsudp and mpegtstcp can be used as the URI protocol specifier. This will speed the transfer of the MPEG-TS streams since no parsing will occur.
 
 
+### Push-In Authentication
 
-### LOCAL SDP FILE
+For security, EMS has an option to require all streams which are pushed into the server be authenticated using authentication details that are specified in `config.lua` and `users.lua`. By default, the authentication configuration is disabled.
 
-EMS is also capable in pulling an Session Description Protocol (SDP) file. An SDP is a format for describing the initialization parameters of streaming media sessions. SDP does not deliver media itself but is used for negotiation between end points of media type, format, and all associated properties.
+To enable authentication in the EMS the following should be set:
+
+1. Set [auth.xml]() to true
+
+   ```
+   <BOOL name="">true</BOOL>
+   ```
+
+2. Remove comments (`--[[` .. `]]--`) and configure authentication in `config.lua`
+
+   ```
+   authentication=
+    {
+      rtmp=
+      {
+        type="adobe",
+        encoderAgents=
+      {
+        "FMLE/3.0 (compatible; FMSc/1.0)",
+        "Wirecast/FM 1.0 (compatible; FMSc/1.0)",
+        "EvoStream Media Server (www.evostream.com)"
+      },
+        usersFile="..\\config\\users.lua"
+      },
+      rtsp=
+      {
+        usersFile="..\\config\\users.lua",
+        authenticatePlay=true,
+      }
+    },
+   ```
+
+3. Add user in [users.lua]()
+
+   ```
+   users=
+   {
+   	evo="evo123",
+   	stream="stream123",
+   }
+
+   realms=
+   {
+   	{
+   		name="EVOSTREAM stream router",
+   		method="Digest",
+   		users={
+   			"evo",
+   			"stream",
+   		},
+   	},
+   }
+   ```
+
+4. Run EMS and send the `pushStream` command
+
+
+
+
+
+## JSON CLI Response
+
+**API Call:**
 
 ```
-pullStream uri=file://<FILEPATH>/FILENAME.sdp localStreamName=sdpFileTest
+pushStream uri=rtmp://192.168.2.105/live localStreamName=testpullstream targetStreamName=testpushstream 
 ```
 
-**Note:**
+**JSON Response:**
 
-The SDP must reside in the file system accessible by EMS.
+```
+Command entered successfully!
+Local stream testpullstream enqueued for pushing to rtmp://192.168.2.105/live as
+ testpushstream
+
+    configId: 2
+    forceTcp: false
+    keepAlive: true
+    localStreamName: testpullstream
+    targetStreamName: testpushstream
+    targetStreamType: live
+    targetUri:
+      fullUri: rtmp://192.168.2.105/live
+      port: 1935
+      scheme: rtmp
+```
+
+
+## Playing a Pushed Steam
+
+Playing a pushed stream is similar in playing a pulled stream. 
+
+The basic commands in playing a pushed stream in EMS are the following:
+
+- **RTMP**
+
+  The format of the RTMP URI is as follows:
+
+  ```
+  rtmp[t|s]://[username[:password]@]ip[:port]/<appName>/<stream_name>
+  ```
+
+  As an example, to play an RTMP stream, use the following URI in the Flash enabled player:
+
+  ```
+  rtmp://<EMS_IP_ADDRESS>/live/localStreamName
+  ```
+
+- **RTMP**
+
+  The format of the RTSP URI is as follows:
+
+  ```
+  rtsp://[username[:password]@]ip[:port]/[ts|vod|vodts]/<stream_name or MP4 file name>
+  ```
+
+  **Note:**
+
+  The command is very similar to RTMP, except for the absence of the �appName� field.
+
+  As an example, to play an RTSP stream, the following URI in an RTSP enabled player can be used:
+
+  ```
+  rtsp://<EMS_IP_ADDRESS>:5544/localStreamName
+  ```
+
+  By default, the EMS will send the video/audio payload data via RTP. If MPEG-TS is needed instead, simply specify it in the request URI:

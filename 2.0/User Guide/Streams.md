@@ -1,7 +1,3 @@
-![emslogo](..\emslogo.png)
-
-
-
 # Streams
 
 The Streams page consists of different functionalities that can be done with your streams. From Add to Create HTTP Streams to Send Streams to Facebook Live and YouTube Live and to do some configurations.
@@ -147,11 +143,15 @@ This will try to push a local stream to YouTube Live Stream using Events. Below 
 
 **Note:** The pushed stream can only use the RTMP
 
+**Pre-requisite:**
 
+- Enabled Live Streaming in YouTube account 
+
+  ​
 
 1. **Log in** to your Google+ account if not yet logged in
 
-2. **Select a stream** to push to Facebook. Note that a list active streams will be listed under the selections
+2. **Select a stream** to push to YouTube. Note that a list active streams will be listed under the selections
 
    ![](./assets/FB_choosestream.jpg)
 
