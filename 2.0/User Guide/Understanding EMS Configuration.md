@@ -82,19 +82,19 @@ The EMS configuration file, config.lua, is a hierarchical data structure of assi
 -  **`<keyname>= <value>`**
 
   where `value` could be any of the following types:
--   string = series of alpha numeric characters (should be enclosed in double quotes)
+- string = series of alpha numeric characters (should be enclosed in double quotes)
 
     ```
     Example:	pushPullPersistenceFile="..\\config\\pushPullSetup.xml",
     ```
 
--   number = digits
+- number = digits
 
-            ​```
-            Example:	streamsExpireTimer=10,
-            ​```
+         ​```
+         Example:	streamsExpireTimer=10,
+         ​```
 
--   array = list of values (separated by comma and is grouped by braces {}, each value enclosed in double quotes)
+- array = list of values (separated by comma and is grouped by braces {}, each value enclosed in double quotes)
 
     ```
     Example:	aliases = {“flvplayback1”, “vod1”, “live”}
@@ -144,16 +144,19 @@ where:
 EMS_INSTALL_DIRECTORY is the `bin` directory within the EvoStream Media Server Archive directory.
 
 1. The “daemon” value is read. The server now will either fork to become daemon or continue as is in console mode.
+
 2. The “logAppenders” value is read. This is where all log appenders are configured and brought up to running state. Depending on the collection of your log appenders, you may (not) see further log messages.
+
 3. The “applications” value is taken into consideration. Up until now, the server doesn’t do much. After this stage completes, all the applications are fully functional and the server is online and ready to do stuff.
 
+   ​
 
 
-### The config.lua:
+### D.1. The config.lua:
 
-#### A. daemon
+#### D.1.1. daemon
 
-If **true** means the server will start in daemon mode. **false** means it will start in console mode (nice for development)
+For Linux only. If **true** means the server will start in daemon mode. **false** means it will start in console mode (nice for development)
 
 **Type:** Boolean
 
@@ -165,7 +168,21 @@ daemon = false,
 
 
 
-#### B. pathSeparator
+#### D.1.2. instancesCount
+
+For Linux only.  The number of virtual instances of EMS server where load balancing will be performed. If this item is missing, it will be replaced by 0, disabling multiple instances. If its value is -1, it will be replaced by the number of CPUs, enabling one or more additional instances.
+
+**Type:** Number
+
+**Mandatory:** Yes
+
+```
+instancesCount=-1
+```
+
+
+
+#### D.1.3. pathSeparator
 
 This value will be used by the server to compose paths (like media files paths). Examples: on UNIX-like systems this is / while on windows is . Special care must be taken when you specify this value on windows because \ is an escape sequence for Lua so the value should be “\”.
 
@@ -179,7 +196,7 @@ pathSeparator="/",
 
 
 
-#### C. logAppenders
+#### D.1.4. logAppenders
 
 This section contains a list of log appenders. The entire collection of appenders listed in this section is loaded inside the logger at config-time. All log messages will be than passed to all these log appenders. Depending on the log level, an appender may (or may not) log the message. “Logging” a message means “saving” it on the specified “media” (in the example below we have a console appender and a file).
 
@@ -208,7 +225,7 @@ logAppenders=
 	},
 ```
 
-##### logAppenders Structure Table
+**logAppenders Structure Table**
 
 |        Key        |  Type   | Mandatory | Description                              |
 | :---------------: | :-----: | :-------: | ---------------------------------------- |
@@ -225,7 +242,7 @@ logAppenders=
 
 
 
-#### D. applications
+#### D.1.5. applications
 
 Will hold a collection of loaded applications. Besides that, it will also hold few other values.
 
@@ -514,23 +531,11 @@ Below are the objects inside applications:
   					description="Default media storage",
   					mediaFolder="../media",
   				},
-  				--[[
-  				sample={
-  					description="Storage example",
-  					mediaFolder="/some/media/folder",
-  					metaFolder="/fast/discardable/separate/folder",
-  					enableStats=false,
-  					clientSideBuffer=15,
-  					keyframeSeek=true,
-  					seekGranularity=0.1,
-  					externalSeekGenerator=false,
-  				}
-  				]]--
   			},
   ```
   There are several uses of the media folder:
 
-  - Storage of vod file that is used for `pullStream`
+  - Storage of VOD file that is used for `pullStream`
   - Location of the created file using `generateLazyPull` command
   - Storage of recorded streams using record command
 
@@ -544,6 +549,21 @@ Below are the objects inside applications:
   |      description       | String |   False   | The description of the media storage     |
   |      mediafolder       | String |   True    | The path of the media storage folder     |
 
+
+  **Other optional parameters:**
+
+  |          Key          |  Type   | Mandatory | Description                              |
+  | :-------------------: | :-----: | :-------: | ---------------------------------------- |
+  |      metaFolder       | string  |   False   | The folder path of the seek and meta files generated |
+  |      enableStats      | boolean |   False   | The location where the EMS will create statistic, seek and meta files for each of the VOD files. The EMS must be able to write to this folder |
+  |   clientSideBuffer    | number  |   False   | If true, the EMS will record statistics about each VOD file played. The stats will be kept in a .stats file named the same as the media file stored in the metaFolder and will include the number of times accessed and the amount of bytes served from it |
+  |     keyframeSeek      | boolean |   False   | The number of seconds the EMS will buffer content when doing VOD playback for an RTMP client |
+  |    seekGranularity    | number  |   False   | Seeking only occurs at key-frames if true. If false, seeking may occur on inter-frame packets, which may cause garbage to be shown on the client player until a keyframe is reached |
+  | externalSeekGenerator | boolean |   False   | The fidelity, in seconds, of seeking for the files in this mediaFolder |
+
+  See [VOD]() for more details.
+
+  ​
 
 - **acceptors** - the “acceptors” block is found within the “applications” section named “evostreamms” in the configuration file. Each acceptor protocol used by applications is defined here. Some protocols may require additional parameters.
 
@@ -670,60 +690,59 @@ Below are the objects inside applications:
   			},
   ```
 
-
   **acceptor Structure Table:**
 
-  |   Key    |  Type  | Mandatory | Description                              |
-  | :------: | :----: | :-------: | ---------------------------------------- |
-  |    ip    | string |    yes    | The IP where the service is located. A value of 0.0.0.0 means all interfaces and all IPs. |
-  |   port   | string |    yes    | Port number that the service will listen to. |
-  | protocol | string |    yes    | The protocol stack handled by the ip:port combination. |
+|   Key    |  Type  | Mandatory | Description                              |
+| :------: | :----: | :-------: | ---------------------------------------- |
+|    ip    | string |    yes    | The IP where the service is located. A value of 0.0.0.0 means all interfaces and all IPs. |
+|   port   | string |    yes    | Port number that the service will listen to. |
+| protocol | string |    yes    | The protocol stack handled by the ip:port combination. |
 
   The following acceptor types are supported by EMS:
 
-  | Acceptor Protocol  | Typical IP | Typical Port |    Additional Parameters (see Note 1)    | Protocol Stack (Tags) |
-  | :----------------: | :--------: | :----------: | :--------------------------------------: | :-------------------: |
-  |    inboundRtmp     |  0.0.0.0   |     1935     |                                          |        TCP+IR         |
-  |    inboundRtmps    |  0.0.0.0   |     8081     | sslKey (path to SSL key file), sslCert (path to SSL certificate file) (see Note 2) |     TCP+ISSL+IRS      |
-  |    inboundRtmpt    |  0.0.0.0   |     8080     |                                          |       TCP+IH4R        |
-  |    inboundTcpTs    |  0.0.0.0   |     9999     |                                          |        TCP+ITS        |
-  |    inboundUdpTs    |  0.0.0.0   |     9999     |                                          |        UDP+ITS        |
-  |    inboundRtsp     |  0.0.0.0   |     5544     |                                          |       TCP+RTSP        |
-  |   inboundLiveFlv   |  0.0.0.0   |     6666     |        waitForMetadata (boolean)         |       TCP+ILFL        |
-  | inboundBinVariant  | 127.0.0.1  |     1113     |           clustering (boolean)           |       TCP+BVAR        |
-  |   inboundJsonCli   | 127.0.0.1  |     1112     |        useLengthPadding (boolean)        |     TCP+IJSONCLI      |
-  | inboundHttpJsonCli | 127.0.0.1  |     7777     |                                          | TCP+IHTT+H4C+IJSONCLI |
-  |  inboundAsciiCli   | 127.0.0.1  |     1222     |        useLengthPadding (boolean)        |      TCP+IASCCLI      |
+| Acceptor Protocol  | Typical IP | Typical Port |    Additional Parameters (see Note 1)    | Protocol Stack (Tags) |
+| :----------------: | :--------: | :----------: | :--------------------------------------: | :-------------------: |
+|    inboundRtmp     |  0.0.0.0   |     1935     |                                          |        TCP+IR         |
+|    inboundRtmps    |  0.0.0.0   |     8081     | sslKey (path to SSL key file), sslCert (path to SSL certificate file) (see Note 2) |     TCP+ISSL+IRS      |
+|    inboundRtmpt    |  0.0.0.0   |     8080     |                                          |       TCP+IH4R        |
+|    inboundTcpTs    |  0.0.0.0   |     9999     |                                          |        TCP+ITS        |
+|    inboundUdpTs    |  0.0.0.0   |     9999     |                                          |        UDP+ITS        |
+|    inboundRtsp     |  0.0.0.0   |     5544     |                                          |       TCP+RTSP        |
+|   inboundLiveFlv   |  0.0.0.0   |     6666     |        waitForMetadata (boolean)         |       TCP+ILFL        |
+| inboundBinVariant  | 127.0.0.1  |     1113     |           clustering (boolean)           |       TCP+BVAR        |
+|   inboundJsonCli   | 127.0.0.1  |     1112     |        useLengthPadding (boolean)        |     TCP+IJSONCLI      |
+| inboundHttpJsonCli | 127.0.0.1  |     7777     |                                          | TCP+IHTT+H4C+IJSONCLI |
+|  inboundAsciiCli   | 127.0.0.1  |     1222     |        useLengthPadding (boolean)        |      TCP+IASCCLI      |
 
   **Protocol Group Table:**
 
-  |    Protocol Group    |   Tag    | Protocol Type          |
-  | :------------------: | :------: | ---------------------- |
-  |  Carrier Protocols   |   TCP    | TCP                    |
-  |                      |   UDP    | UDP                    |
-  |  Variant Protocols   |   BVAR   | Bin Variant            |
-  |                      |   XVAR   | XML Variant            |
-  |                      |   JVAR   | JSON Variant           |
-  |    RTMP Protocols    |    IR    | Inbound RTMP           |
-  |                      |   IRS    | Inbound RTMPS          |
-  |                      |    OR    | Outbound RTMP          |
-  |                      |    RS    | RTMP Dissector         |
-  | Encryption Protocols |    RE    | RTMPE                  |
-  |                      |   ISSL   | Inbound SSL            |
-  |                      |   OSSL   | Outbound SSL           |
-  |   MPEG-TS Protocol   |   ITS    | Inbound TS             |
-  |    HTTP Protocols    |   IHTT   | Inbound HTTP           |
-  |                      |  IHTT2   | Inbound HTTP2          |
-  |                      |   IH4R   | Inbound HTTP for RTMP  |
-  |                      |   OHTT   | Outbound HTTP          |
-  |                      |  OHTT2   | Outbound HTTP2         |
-  |                      |   OH4R   | Outbound HTTP for RTMP |
-  |    CLI Protocols     | IJSONCLI | Inbound JSON CLI       |
-  |                      |   H4C    | HTTP for CLI           |
-  |                      | IASCCLI  | Inbound ASCII CLI      |
-  |    RPC Protocols     |   IRPC   | Inbound RPC            |
-  |                      |   ORPC   | Outbound RPC           |
-  | Passthrough Protocol |    PT    | Passthrough            |
+|    Protocol Group    |   Tag    | Protocol Type          |
+| :------------------: | :------: | ---------------------- |
+|  Carrier Protocols   |   TCP    | TCP                    |
+|                      |   UDP    | UDP                    |
+|  Variant Protocols   |   BVAR   | Bin Variant            |
+|                      |   XVAR   | XML Variant            |
+|                      |   JVAR   | JSON Variant           |
+|    RTMP Protocols    |    IR    | Inbound RTMP           |
+|                      |   IRS    | Inbound RTMPS          |
+|                      |    OR    | Outbound RTMP          |
+|                      |    RS    | RTMP Dissector         |
+| Encryption Protocols |    RE    | RTMPE                  |
+|                      |   ISSL   | Inbound SSL            |
+|                      |   OSSL   | Outbound SSL           |
+|   MPEG-TS Protocol   |   ITS    | Inbound TS             |
+|    HTTP Protocols    |   IHTT   | Inbound HTTP           |
+|                      |  IHTT2   | Inbound HTTP2          |
+|                      |   IH4R   | Inbound HTTP for RTMP  |
+|                      |   OHTT   | Outbound HTTP          |
+|                      |  OHTT2   | Outbound HTTP2         |
+|                      |   OH4R   | Outbound HTTP for RTMP |
+|    CLI Protocols     | IJSONCLI | Inbound JSON CLI       |
+|                      |   H4C    | HTTP for CLI           |
+|                      | IASCCLI  | Inbound ASCII CLI      |
+|    RPC Protocols     |   IRPC   | Inbound RPC            |
+|                      |   ORPC   | Outbound RPC           |
+| Passthrough Protocol |    PT    | Passthrough            |
 
   ​
 
@@ -1010,22 +1029,14 @@ The certificate used for security authentication.
 
 ```
 -----BEGIN CERTIFICATE-----
-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
+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
 sjiyBNWZUq1pE3x0RnTpUA==
 -----END CERTIFICATE-----
 ```
@@ -1040,18 +1051,12 @@ The private key used for security authentication.
 
 ```
 -----BEGIN RSA PRIVATE KEY-----
-MIICXAIBAAKBgQCwVGvra2hX2utJnriY89Wq0bsUrotH6wFlIoXbP7u5EEwKiqet
-vZxkUbeVxJtfdoS0OIHf+xiugYBY33G3odSL7ZISkHT5VeDbXtBJ2kaYcMXUTlh3
-0OPvK8MGsPPBKu5HLTPYnQiRhJc+OcF0/oSR1oR1YGJIgfGQxXTdQFf9eQIDAQAB
-AoGARpKjVuf4LSGLhj2meGEvJV0n2VE6oaAnQMkede/+PEWPibCRB/KZw3UJW0ID
-RaPz3QW4xWKEMGPYcLmNlAeLP4O6OK01FZidjznqFFOwLP4nau3WOoyTqIBQN1/3
-il0QrPnXSvk8ao2xk4SAI87khGyiP+R1zVpBpx2nUHdDbGECQQDcLbYnJozkeFVj
-0atV0vEOTQrIKv/s0ldHHJBvm8slDvWhOie8Ls41U/Jr/Rp1V/u6CdQMTSl5NB6R
-SgE4NsBFAkEAzQRwA79+NXPEqcK7CbAZeURJ0H9Ad3+db+B1MwvZyqi9wjLCJeXF
-AbrIkpE6jXcedtQuXtI/sJ5bglvfRDFdpQJBAL1TyUgNDCYBm1uEFZJtGr8zXEwX
-PY5EqKwLUd/G1X3+SRTkTvqwPLz6fICDWdcBWwH0JZSWXU1NleNVAYt2+QkCQCCD
-5agShNfBZp1t7vAYZ9HdzL8uj3DkYnnN5YiVBpOns4DLQBN2n4oor4rfUaQCEmjS
-OhB70/IVC3pfS8eq9KkCQDr4ATT8i8IQyJGerJ47mx2/LhL1ZwqykqBQFW8Xyni7
+MIICXAIBAAKBgQCwVGvra2hX2utJnriY89Wq0bsUrotH6wFlIoXbP7u5EEwKiqetvZxkUbeVxJtfdoS0OIHf+xiugYBY33G3odSL7ZISkHT5VeDbXtBJ2kaYcMXUTlh3
+0OPvK8MGsPPBKu5HLTPYnQiRhJc+OcF0/oSR1oR1YGJIgfGQxXTdQFf9eQIDAQABAoGARpKjVuf4LSGLhj2meGEvJV0n2VE6oaAnQMkede/+PEWPibCRB/KZw3UJW0ID
+RaPz3QW4xWKEMGPYcLmNlAeLP4O6OK01FZidjznqFFOwLP4nau3WOoyTqIBQN1/3il0QrPnXSvk8ao2xk4SAI87khGyiP+R1zVpBpx2nUHdDbGECQQDcLbYnJozkeFVj
+0atV0vEOTQrIKv/s0ldHHJBvm8slDvWhOie8Ls41U/Jr/Rp1V/u6CdQMTSl5NB6RSgE4NsBFAkEAzQRwA79+NXPEqcK7CbAZeURJ0H9Ad3+db+B1MwvZyqi9wjLCJeXF
+AbrIkpE6jXcedtQuXtI/sJ5bglvfRDFdpQJBAL1TyUgNDCYBm1uEFZJtGr8zXEwXPY5EqKwLUd/G1X3+SRTkTvqwPLz6fICDWdcBWwH0JZSWXU1NleNVAYt2+QkCQCCD
+5agShNfBZp1t7vAYZ9HdzL8uj3DkYnnN5YiVBpOns4DLQBN2n4oor4rfUaQCEmjSOhB70/IVC3pfS8eq9KkCQDr4ATT8i8IQyJGerJ47mx2/LhL1ZwqykqBQFW8Xyni7
 GVOnuh7pX19wgj2VZv2Mz4HvKggPvXlS/WKtPFYsqsw=
 -----END RSA PRIVATE KEY-----
 ```
@@ -1102,6 +1107,8 @@ realms=
 ## L. webconfig.lua
 
 This is the main configuration file of the EvoStream Web Server (EWS). This file sets the locations of important web server files/folders such as the web root folder, server key & certificate, white list, black list, logs, etc. This is where other web server settings are defined, including HTTP port, group name aliasing, SSL mode, connection/memory limits, mime types, etc.
+
+### L.1. The webconfig.lua
 
 - **logAppenders** - the configuration for the web server logs and log files
 
@@ -1361,7 +1368,6 @@ This is the main configuration file of the EvoStream Web Server (EWS). This file
   				},
   			},
   ```
-
 
 
 

@@ -2,6 +2,14 @@
 
 # Installation
 
+## Obtaining a License
+
+A license file is required to run EMS. EvoStream offers 30-day trial licenses which can be obtained from the EvoStream website: [https://evostream.com/free-trial/](https://evostream.com/free-trial/)
+
+Licenses can be purchased from EvoStream directly, contact [sales@evostream.com](mailto:sales@evostream.com), or via the EvoStream Website: [https://evostream.com/pricing/](https://evostream.com/pricing/).
+
+
+
 ## Windows
 
 1. Download the EMS package installer at [https://evostream.com/software-downloads](https://evostream.com/software-downloads)
@@ -192,7 +200,7 @@ hard nproc 16384
 
 
 
-### A. Linux Package
+### A. Linux Package (Linux apt/yum Installer)
 
 **Pre-requisites:**
 
@@ -216,7 +224,7 @@ The prompt changes from `$` to `#` when administrative privileges are enabled.
 
 
 
-#### Installation Procedure:
+**Installation Procedure:**
 
 1\. Retrieve the script used to install the EvoStream software repository and store it
 
@@ -269,7 +277,15 @@ The following steps are used to install the EvoStream Media Server, and can be r
   ```
 
 
-### B. Linux Archive
+
+
+#### License Installation
+
+To install the license, simply copy the `License.lic` file to `/etc/evostream/License.lic`.
+
+
+
+### B. Linux Archive (.tar.gz Distribution)
 
 You can install the EMS from a simple archive file (.tar.gz). The latest EMS Release can be found on the EvoStream website: [https://evostream.com/software-downloads/](https://evostream.com/software-downloads/).
 
@@ -281,9 +297,7 @@ Simply **extract** the EMS package. The location of the installation is not impo
 
 #### License Installation
 
-**Note:** You should already have your license file available. If none, EvoStream offers a **30-day free trial** license to those who want to explore the features of EMS. Click [here](https://evostream.com/free-trial/) to avail the free trial or contact [salesupport@evostream](mailto:salessupport@evostream.com) for other license type purchase.
-
-To install the license, simply copy the `License.lic` file to `/etc/evostream/License.lic` for Linux package or  `../config/License.lic` for Linux Archive.
+To install the license, simply copy the `License.lic` file to `../config/License.lic`.
 
 
 
@@ -616,6 +630,7 @@ This command will print differently on different operating systems, but it shoul
 
 - The **user** used by `run_daemon_ems.sh` can easily be modified by changing the value after the `-u` in the script itself.
 - The user running the EvoStream Media Server must have sufficient permission to open and bind to network ports.
+
 
 
 

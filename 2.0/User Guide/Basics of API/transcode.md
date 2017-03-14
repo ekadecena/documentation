@@ -74,7 +74,7 @@ Transcoding successfully started.
       -- na
 ```
 
-This command takes the **Source1** stream and creates 3 new streams within the EMS. **stream100** has a bit rate of 100kbps, **stream200** has a bit rate of 200kbps and **stream300** has a bit rate of 300kbps.
+This command takes the **Source1** stream and creates 3 new streams within the EMS. **stream100** has a bit rate of 100kbps, **stream200** has a bit rate of 200kbps and **stream300** has a bit rate of 300kbps. You can check the created streams by sending `listStreams`.
 
 You can then take each of those final streams and access them directly (IE: via RTMP or RTSP), or you can create an HLS group out of them to create an adaptive bitrate stream for iOS devices:
 
@@ -138,8 +138,44 @@ This command pulls the source stream from its RTSP source directly, transcodes i
 
 This will change your input stream to an output file, or an input file to an output file.
 
+**Format:**
+
 ```
-transcode source=file://C:\videos\test.mp4 groupName=group videoBitrates=100k audioBitrates=copy destinations=file://C:\videos\out.mp4 keepAlive=0
+transcode source=file://path_to_sourceFile groupName=group videoBitrates=<bitrate> audioBitrates=<bitrate> destinations=file://path_to_outputFile
+```
+
+**Sample API Call:**
+
+```
+transcode source=file://C:\EvoStream\media\bunny.mp4 groupName=group1 videoBitrates=100k audioBitrates=copy destinations=file://C:\EvoStream\media\transcoded.mp4 keepAlive=0
+```
+
+**JSON Response:**
+
+```
+Command entered successfully!
+Transcoding successfully started.
+
+    audioBitrates:
+      -- copy
+    croppings:
+      -- na
+    destinations:
+      -- file://C:\EvoStream\media\transcoded.mp4
+    dstUriPrefix: -f flv tcp://localhost:6666/
+    emsTargetStreamName:
+    fullBinaryPath: C:\EvoStream\emsTranscoder.bat
+    groupName: group1
+    keepAlive: false
+    localStreamName:
+    source: file://C:\EvoStream\media\bunny.mp4
+    srcUriPrefix: rtsp://localhost:5544/
+    targetStreamNames:
+      -- na
+    videoBitrates:
+      -- 100k
+    videoSizes:
+      -- na
 ```
 
 
